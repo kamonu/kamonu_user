@@ -50,23 +50,219 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  Completer<GoogleMapController> _controller = Completer();
 
-  static final CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(50.83579299159458, 12.893697118936261),
-    zoom: 14.4746,
-  );
+  GoogleMapController? controller;
+  static final LatLng center = const LatLng(50.83579299159458, 12.893697118936261);
 
-  static final CameraPosition _kLake = CameraPosition(
-      bearing: 192.8334901395799,
-      target: LatLng(37.43296265331129, -122.08832357078792),
-      tilt: 59.440717697143555,
-      zoom: 19.151926040649414);
+  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
+  MarkerId? selectedMarker;
+  int _markerIdCounter = 1;
+  LatLng? markerPosition;
+
+  void _onMapCreated(GoogleMapController controller) {
+    this.controller = controller;
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  void _onMarkerTapped(MarkerId markerId) {
+    final Marker? tappedMarker = markers[markerId];
+    if (tappedMarker != null) {
+      setState(() {
+        final MarkerId? previousMarkerId = selectedMarker;
+        if (previousMarkerId != null && markers.containsKey(previousMarkerId)) {
+          final Marker resetOld = markers[previousMarkerId]!
+              .copyWith(iconParam: BitmapDescriptor.defaultMarker);
+          markers[previousMarkerId] = resetOld;
+        }
+        selectedMarker = markerId;
+        final Marker newMarker = tappedMarker.copyWith(
+          iconParam: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueGreen,
+          ),
+        );
+        markers[markerId] = newMarker;
+
+        markerPosition = null;
+      });
+    }
+  }
+
+  void _onMarkerDrag(MarkerId markerId, LatLng newPosition) async {
+    setState(() {
+      this.markerPosition = newPosition;
+    });
+  }
+
+  void _onMarkerDragEnd(MarkerId markerId, LatLng newPosition) async {
+    final Marker? tappedMarker = markers[markerId];
+    if (tappedMarker != null) {
+      setState(() {
+        this.markerPosition = null;
+      });
+      await showDialog<void>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+                actions: <Widget>[
+                  TextButton(
+                    child: const Text('OK'),
+                    onPressed: () => Navigator.of(context).pop(),
+                  )
+                ],
+                content: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 66),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text('Old position: ${tappedMarker.position}'),
+                        Text('New position: $newPosition'),
+                      ],
+                    )));
+          });
+    }
+  }
 
   Future<void> _reportHomlessPerson() async {
-    final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
+    final int markerCount = markers.length;
+
+    if (markerCount == 12) {
+      return;
+    }
+
+    final String markerIdVal = 'homless_person_$_markerIdCounter';
+    _markerIdCounter++;
+    final MarkerId markerId = MarkerId(markerIdVal);
+    double screenWidth = MediaQuery.of(context).size.width * MediaQuery.of(context).devicePixelRatio;
+    double screenHeight = MediaQuery.of(context).size.height *
+        MediaQuery.of(context).devicePixelRatio;
+
+    double middleX = screenWidth / 2;
+    double middleY = screenHeight / 2;
+
+    ScreenCoordinate screenCoordinate = ScreenCoordinate(x: middleX.round(), y: middleY.round());
+
+    LatLng? middlePoint = await controller?.getLatLng(screenCoordinate);
+    if (middlePoint == null)
+      middlePoint=center;
+
+    final Marker marker = Marker(
+      markerId: markerId,
+      position: middlePoint,
+      infoWindow: InfoWindow(title: markerIdVal, snippet: '*'),
+      onTap: () => _onMarkerTapped(markerId),
+      onDragEnd: (LatLng position) => _onMarkerDragEnd(markerId, position),
+      onDrag: (LatLng position) => _onMarkerDrag(markerId, position),
+    );
+
+    setState(() {
+      markers[markerId] = marker;
+    });
   }
+
+  void _remove(MarkerId markerId) {
+    setState(() {
+      if (markers.containsKey(markerId)) {
+        markers.remove(markerId);
+      }
+    });
+  }
+
+  void _changePosition(MarkerId markerId) {
+    final Marker marker = markers[markerId]!;
+    final LatLng current = marker.position;
+    final Offset offset = Offset(
+      center.latitude - current.latitude,
+      center.longitude - current.longitude,
+    );
+    setState(() {
+      markers[markerId] = marker.copyWith(
+        positionParam: LatLng(
+          center.latitude + offset.dy,
+          center.longitude + offset.dx,
+        ),
+      );
+    });
+  }
+
+  void _changeAnchor(MarkerId markerId) {
+    final Marker marker = markers[markerId]!;
+    final Offset currentAnchor = marker.anchor;
+    final Offset newAnchor = Offset(1.0 - currentAnchor.dy, currentAnchor.dx);
+    setState(() {
+      markers[markerId] = marker.copyWith(
+        anchorParam: newAnchor,
+      );
+    });
+  }
+
+  Future<void> _changeInfoAnchor(MarkerId markerId) async {
+    final Marker marker = markers[markerId]!;
+    final Offset currentAnchor = marker.infoWindow.anchor;
+    final Offset newAnchor = Offset(1.0 - currentAnchor.dy, currentAnchor.dx);
+    setState(() {
+      markers[markerId] = marker.copyWith(
+        infoWindowParam: marker.infoWindow.copyWith(
+          anchorParam: newAnchor,
+        ),
+      );
+    });
+  }
+
+  Future<void> _toggleDraggable(MarkerId markerId) async {
+    final Marker marker = markers[markerId]!;
+    setState(() {
+      markers[markerId] = marker.copyWith(
+        draggableParam: !marker.draggable,
+      );
+    });
+  }
+
+  Future<void> _toggleFlat(MarkerId markerId) async {
+    final Marker marker = markers[markerId]!;
+    setState(() {
+      markers[markerId] = marker.copyWith(
+        flatParam: !marker.flat,
+      );
+    });
+  }
+
+  Future<void> _changeInfo(MarkerId markerId) async {
+    final Marker marker = markers[markerId]!;
+    final String newSnippet = marker.infoWindow.snippet! + '*';
+    setState(() {
+      markers[markerId] = marker.copyWith(
+        infoWindowParam: marker.infoWindow.copyWith(
+          snippetParam: newSnippet,
+        ),
+      );
+    });
+  }
+
+  Future<void> _changeAlpha(MarkerId markerId) async {
+    final Marker marker = markers[markerId]!;
+    final double current = marker.alpha;
+    setState(() {
+      markers[markerId] = marker.copyWith(
+        alphaParam: current < 0.1 ? 1.0 : current * 0.75,
+      );
+    });
+  }
+
+  Future<void> _changeRotation(MarkerId markerId) async {
+    final Marker marker = markers[markerId]!;
+    final double current = marker.rotation;
+    setState(() {
+      markers[markerId] = marker.copyWith(
+        rotationParam: current == 330.0 ? 0.0 : current + 30.0,
+      );
+    });
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -86,19 +282,20 @@ class _MyHomePageState extends State<MyHomePage> {
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
         child: GoogleMap(
-          mapType: MapType.normal,
-          myLocationButtonEnabled: true,
-          initialCameraPosition: _kGooglePlex,
-          onMapCreated: (GoogleMapController controller) {
-            _controller.complete(controller);
-          },
+          onMapCreated: _onMapCreated,
+          initialCameraPosition: const CameraPosition(
+            target: LatLng(50.83579299159458, 12.893697118936261),
+            zoom: 17.0,
+          ),
+          markers: Set<Marker>.of(markers.values),
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _reportHomlessPerson,
         tooltip: 'Increment',
         child: const Icon(Icons.add_location),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
