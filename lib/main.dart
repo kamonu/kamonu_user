@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
 
 void main() {
   runApp(const MyApp());
@@ -52,15 +53,25 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
 
   GoogleMapController? controller;
-  static final LatLng center = const LatLng(50.83579299159458, 12.893697118936261);
+  static const LatLng center =  LatLng(50.83579299159458, 12.893697118936261);
 
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
   MarkerId? selectedMarker;
   int _markerIdCounter = 1;
   LatLng? markerPosition;
+  Location _location = Location();
 
   void _onMapCreated(GoogleMapController controller) {
     this.controller = controller;
+    _location.onLocationChanged.listen((l) {
+      if (l.latitude != null && l.longitude != null) {
+        controller.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(target: LatLng(l.latitude!, l.longitude!), zoom: 15),
+          ),
+        );
+    }
+    });
   }
 
   @override
@@ -93,7 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _onMarkerDrag(MarkerId markerId, LatLng newPosition) async {
     setState(() {
-      this.markerPosition = newPosition;
+      markerPosition = newPosition;
     });
   }
 
@@ -101,7 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final Marker? tappedMarker = markers[markerId];
     if (tappedMarker != null) {
       setState(() {
-        this.markerPosition = null;
+        markerPosition = null;
       });
       await showDialog<void>(
           context: context,
@@ -146,8 +157,7 @@ class _MyHomePageState extends State<MyHomePage> {
     ScreenCoordinate screenCoordinate = ScreenCoordinate(x: middleX.round(), y: middleY.round());
 
     LatLng? middlePoint = await controller?.getLatLng(screenCoordinate);
-    if (middlePoint == null)
-      middlePoint=center;
+    middlePoint ??=  middlePoint=center;
 
     final Marker marker = Marker(
       markerId: markerId,
@@ -284,9 +294,10 @@ class _MyHomePageState extends State<MyHomePage> {
         child: GoogleMap(
           onMapCreated: _onMapCreated,
           initialCameraPosition: const CameraPosition(
-            target: LatLng(50.83579299159458, 12.893697118936261),
+            target: center,
             zoom: 17.0,
           ),
+          myLocationEnabled: true,
           markers: Set<Marker>.of(markers.values),
         ),
       ),
