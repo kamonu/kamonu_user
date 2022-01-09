@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Komonu - Hilf uns Helfen',
+      title: 'Kamonu - Hilf uns Helfen',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Komuno - Hilf uns Helfen'),
+      home: const MyHomePage(title: 'Kamonu - Hilf uns Helfen'),
     );
   }
 }
@@ -49,7 +49,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  KamonuMap _kamonuMap =KamonuMap();
+  final KamonuMap _kamonuMap =KamonuMap();
 
   @override
   void dispose() {
