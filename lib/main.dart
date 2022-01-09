@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Komuno - Hilf uns Helfen',
+      title: 'Komonu - Hilf uns Helfen',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -137,7 +137,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Future<void> _reportHomlessPerson() async {
+  Future<void> _reportHomelessPerson() async {
     final int markerCount = markers.length;
 
     if (markerCount == 12) {
@@ -302,7 +302,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _reportHomlessPerson,
+        onPressed: _reportHomelessPerson,
         tooltip: 'Increment',
         child: const Icon(Icons.add_location),
       ),
