@@ -1,4 +1,4 @@
-package com.example.kamonu_user
+package de.heilsarmee.kamonu
 
 import io.flutter.embedding.android.FlutterActivity
 
