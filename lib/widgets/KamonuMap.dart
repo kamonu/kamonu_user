@@ -112,7 +112,7 @@ class _KamonuMapState extends State<KamonuMap> {
       return;
     }
 
-    final String markerIdVal = 'homless_person_$_markerIdCounter';
+    final String markerIdVal = 'like_us_$_markerIdCounter';
     _markerIdCounter++;
     final MarkerId markerId = MarkerId(markerIdVal);
     double screenWidth = MediaQuery.of(context).size.width * MediaQuery.of(context).devicePixelRatio;
@@ -132,7 +132,7 @@ class _KamonuMapState extends State<KamonuMap> {
       position: middlePoint,
       infoWindow: InfoWindow(
           title: markerIdVal,
-          snippet: '*',
+          snippet: 'he needs help!!!',
       ),
 
       onTap: () => _onMarkerTapped(markerId),
