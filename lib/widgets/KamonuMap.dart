@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 
+/*Todo: On Location Update only make the Map "dirty" do not scroll "automatically"
+ to the new deliverd location... ony do this when forced to*/
 class KamonuMap extends StatefulWidget {
   KamonuMap({Key? key}) : super(key: key);
 
   // This widget holds the main Map functionality for now :)
-  _KamonuMapState kamonuMapState= new _KamonuMapState();
+  _KamonuMapState kamonuMapState= _KamonuMapState();
   @override
   State<KamonuMap> createState() => kamonuMapState;
   Future<void> reportHomelessPerson() async {
@@ -128,7 +130,11 @@ class _KamonuMapState extends State<KamonuMap> {
     final Marker marker = Marker(
       markerId: markerId,
       position: middlePoint,
-      infoWindow: InfoWindow(title: markerIdVal, snippet: '*'),
+      infoWindow: InfoWindow(
+          title: markerIdVal,
+          snippet: '*',
+      ),
+
       onTap: () => _onMarkerTapped(markerId),
       onDragEnd: (LatLng position) => _onMarkerDragEnd(markerId, position),
       onDrag: (LatLng position) => _onMarkerDrag(markerId, position),
