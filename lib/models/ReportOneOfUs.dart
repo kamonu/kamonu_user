@@ -1,5 +1,7 @@
+import 'OneOfUs.dart';
+
 class ReportOneOfUs {
   OneOfUs oneOfUs;
-  Timestamp reported;
-  ReportOneOfUs(this.oneOfUs,this.reported)
+  var timestamp;
+  ReportOneOfUs(this.oneOfUs,this.timestamp);
 }
