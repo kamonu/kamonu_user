@@ -19,14 +19,13 @@ enum Gender {
 }
 
 class OneOfUs {
-  String title = "Obdachlose Person";
+  String title = "Eine(r) von uns der Hilfe braucht";
   String notes = "";
   String languages = "de";
   bool helped = false;
   Gender gender = Gender.notSpecified;
   List<Condition> conditions = <Condition>[];
   //ToDo: add Organisations wich helped
-
   addCondition(Condition _condition){
     conditions.add(_condition);
   }
