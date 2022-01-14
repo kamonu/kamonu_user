@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kamonu_user/widgets/KamonuMap.dart';
+import 'package:kamonu_user/widgets/kamonu_map.dart';
 
 void main() {
   runApp(const MyApp());

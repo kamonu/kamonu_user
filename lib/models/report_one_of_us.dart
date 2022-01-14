@@ -1,4 +1,4 @@
-import 'OneOfUs.dart';
+import 'one_of_us.dart';
 
 class ReportOneOfUs {
   OneOfUs oneOfUs;

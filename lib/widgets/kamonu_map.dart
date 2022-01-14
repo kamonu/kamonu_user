@@ -256,6 +256,9 @@ class _KamonuMapState extends State<KamonuMap> {
             zoom: 17.0,
           ),
           myLocationEnabled: true,
+          compassEnabled: true,
+          myLocationButtonEnabled: true,
+
           markers: Set<Marker>.of(markers.values),
         );
   }
