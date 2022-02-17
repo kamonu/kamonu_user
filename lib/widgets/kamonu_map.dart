@@ -19,7 +19,6 @@ class KamonuMap extends StatefulWidget {
 }
 
 class _KamonuMapState extends State<KamonuMap> {
-
   GoogleMapController? controller;
   static const LatLng center =  LatLng(50.83579299159458, 12.893697118936261);
 
@@ -28,18 +27,25 @@ class _KamonuMapState extends State<KamonuMap> {
   int _markerIdCounter = 1;
   LatLng? markerPosition;
   Location _location = Location();
+  bool located = true;
 
   void _onMapCreated(GoogleMapController controller) {
-    this.controller = controller;
     _location.onLocationChanged.listen((l) {
-      if (l.latitude != null && l.longitude != null) {
-        controller.animateCamera(
-          CameraUpdate.newCameraPosition(
-            CameraPosition(target: LatLng(l.latitude!, l.longitude!), zoom: 15),
-          ),
-        );
-      }
+      _onLocationChanged(l);
     });
+  }
+
+  void _onLocationChanged(LocationData locationData) {
+    if (located) {
+      if (locationData.latitude != null && locationData.longitude != null) {
+          this.controller?.animateCamera(
+            CameraUpdate.newCameraPosition(
+              CameraPosition(
+                  target: LatLng(locationData.latitude!, locationData.longitude!), zoom: 15),
+            ),
+          );
+      }
+    }
   }
 
   @override
@@ -244,12 +250,13 @@ class _KamonuMapState extends State<KamonuMap> {
     });
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return  GoogleMap(
           onMapCreated: _onMapCreated,
+          onCameraMove: (position) {
+            located = false;
+          },
           //TODO: Store the Map position and restart at the stored position
           initialCameraPosition: const CameraPosition(
             target: center,
@@ -258,7 +265,6 @@ class _KamonuMapState extends State<KamonuMap> {
           myLocationEnabled: true,
           compassEnabled: true,
           myLocationButtonEnabled: true,
-
           markers: Set<Marker>.of(markers.values),
         );
   }
